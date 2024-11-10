@@ -1,20 +1,20 @@
 import math
 
 # Intitial Data
-methane     = 0.891434
-ethane      = 0.039068
-propane     = 0.018336
-u_butane    = 0.002386
-h_butane    = 0.002606
+methane     = 88.7647 / 100  #
+ethane      = 3.9515  / 100  #
+propane     = 2.3270  / 100  #
+u_butane    = 0.4948  / 100  #
+h_butane    = 0.2650  / 100  #
 neo_pentane = 0
 u_peptane   = 0
-h_pentane   = 0.000619
-neo_hexane  = 0
-h_hexane    = 0.000681
-heptane     = 0
-nitrogen    = 0.044545
-c_dioxide   = 0.00013
-helium      = 0.000177
+h_pentane   = 0.0595  / 100  #
+neo_hexane  = 0       
+h_hexane    = 0.0753  / 100  #
+h_heptane   = 0     
+nitrogen    = 3.2885  / 100  #
+c_dioxide   = 0.7254  / 100  #
+helium      = 0.0483  / 100  #
 hydgrogen   = 0
 
 pressure    = 20
@@ -22,9 +22,11 @@ celsius     = -1
 
 R = 8.31451
 
+# Mole fractions list
 ri = [
     methane, 
-    ethane, propane, 
+    ethane, 
+    propane, 
     u_butane, 
     h_butane, 
     neo_pentane, 
@@ -32,12 +34,12 @@ ri = [
     h_pentane, 
     neo_hexane, 
     h_hexane, 
-    heptane, 
+    h_heptane, 
     nitrogen, 
     c_dioxide, 
     helium, 
     hydgrogen
-    ]
+]
 Ki = [
     0.4619255, 
     0.5279209,
@@ -518,4 +520,4 @@ cp0r += mix[13] * cp0ri_special(13)
 
 # (30)
 adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
-print('Показатель адиабаты равен k = ', round(adiab_ind,2))
+print('Показатель адиабаты равен k = ', adiab_ind)
