@@ -1,28 +1,28 @@
-import math
+from math import sqrt, exp, sinh, cosh
 
-# Intitial Data
-methane     = 88.7647 / 100  #
-ethane      = 3.9515  / 100  #
-propane     = 2.3270  / 100  #
-u_butane    = 0.4948  / 100  #
-h_butane    = 0.2650  / 100  #
-neo_pentane = 0
-u_peptane   = 0
-h_pentane   = 0.0595  / 100  #
-neo_hexane  = 0       
-h_hexane    = 0.0753  / 100  #
-h_heptane   = 0     
-nitrogen    = 3.2885  / 100  #
-c_dioxide   = 0.7254  / 100  #
-helium      = 0.0483  / 100  #
-hydgrogen   = 0
+# ИСХОДНЫЕ ДАННЫЕ
+methane     = 88.7647  / 100  #
+ethane      =  3.9515  / 100  #
+propane     =  2.3270  / 100  #
+u_butane    =  0.4948  / 100  #
+h_butane    =  0.2650  / 100  #
+neo_pentane =  0.0
+u_peptane   =  0.0
+h_pentane   =  0.0595  / 100  #
+neo_hexane  =  0.0       
+h_hexane    =  0.0753  / 100  #
+h_heptane   =  0.0     
+nitrogen    =  3.2885  / 100  #
+c_dioxide   =  0.7254  / 100  #
+helium      =  0.0483  / 100  #
+hydgrogen   =  0.0
 
 pressure    = 20
 celsius     = -1
 
+# УНИВЕРСАЛЬНАЯ ГАЗОВАЯ ПОСТОЯННАЯ ПО ГОСТ 30319.1
 R = 8.31451
 
-# Mole fractions list
 ri = [
     methane, 
     ethane, 
@@ -416,19 +416,20 @@ DSum_xi_xj = sum(mix[i] * mix[j] * (Kij[i][j] ** 5 - 1) * (Ki[i] * Ki[j]) ** exp
 Kx = (Sum_xi_ki + 2 * DSum_xi_xj) ** (1 / 5)
 
 # (4)
-reduced_temp = kelvin/1
+reduced_temp = kelvin / 1
 
 # (6)
-p0m = 10**(-3)*(Kx**(-3)*R*1)
-
+p0m = 10 ** (-3) * (Kx ** (-3) * R * 1)
+ 
 # (5)
-reduced_pres = pressure/p0m
+reduced_pres = pressure / p0m
 
 # (7)-(17)
 G = sum(x * g for x, g in zip(mix, Gi)) + sum(
     mix[i] * mix[j] * (Gij[i][j] - 1) * (Gi[i] + Gi[j]) 
     for i in range(len(mix) - 1) for j in range(i + 1, len(mix))
 )
+
 Q = sum(x * q for x, q in zip(mix, Qi))
 F = sum((x**2) * f for x, f in zip(mix, Fi))
 V = (
@@ -440,24 +441,26 @@ U = [0] * 12
 Cn = lambda n: ((G + 1 - g[n]) ** g[n]) * \
     ((Q**2 + 1 - q[n]) ** q[n]) * ((F + 1 - f[n]) ** f[n]) * (V ** u[n])
 U.extend(Cn(n) for n in range(12, 58))
+
 Bn = lambda n: sum(mix[i] * mix[j] * Bnij(n, i, j) * Eijn(i, j) ** u[n] * ((Ki[i] * Ki[j]) ** (3 / 2)) 
                    for i in range(len(mix)) for j in range(len(mix)))
 Bnij = lambda n, i, j: ((Gijn(i, j) + 1 - g[n]) ** g[n]) * ((Qi[i] * Qi[j] + 1 - q[n]) ** q[n]) * \
-                       ((math.sqrt(Fi[i] * Fi[j]) + 1 - f[n]) ** f[n]) * ((Si[i] * Si[j] + 1 - s[n]) ** s[n]) * \
+                       ((sqrt(Fi[i] * Fi[j]) + 1 - f[n]) ** f[n]) * ((Si[i] * Si[j] + 1 - s[n]) ** s[n]) * \
                        ((Wi[i] * Wi[j] + 1 - w[n]) ** w[n])  
-Eijn = lambda i, j: Eij[i][j] * math.sqrt(Ei[i] * Ei[j])         
+Eijn = lambda i, j: Eij[i][j] * sqrt(Ei[i] * Ei[j])         
 Gijn = lambda i, j: (Gij[i][j] * (Gi[i] + Gi[j])) / 2
+
 D = [Bn(n) * (Kx ** -3) for n in range(12)] + \
     [Bn(n) * (Kx ** -3) - Cn(n) for n in range(12, 18)] + \
     [0] * 40
 
 # (18)
-delta0 = (10 ** 3 * pressure * Kx ** 3) / (R * kelvin) #плотность на 0 шаге - приведенная плотность 
+delta0 = (10 ** 3 * pressure * Kx ** 3) / (R * kelvin) 
 
 # (21)
 A0 = lambda density: sum(
     a[n] * density**b[n] * reduced_temp**(-u[n]) * (b[n] * D[n] + (b[n] - c[n] * k[n] 
-    * density**k[n]) * U[n] * math.exp(-c[n] * density**k[n]))
+    * density**k[n]) * U[n] * exp(-c[n] * density**k[n]))
     for n in range(58)
 )
 # (22)
@@ -466,7 +469,7 @@ A1 = lambda density: sum(
         (b[n] + 1) * b[n] * D[n] + 
         ((b[n] - c[n] * k[n] * density**k[n]) * (b[n] - c[n] 
         * k[n] * density**k[n] + 1) - c[n] * k[n]**2 * density**k[n]) 
-        * U[n] * math.exp(-c[n] * density**k[n])
+        * U[n] * exp(-c[n] * density**k[n])
     )
     for n in range(58)
 )
@@ -474,7 +477,7 @@ A1 = lambda density: sum(
 # (24)
 calc_reduced_pres = lambda density: density * reduced_temp * (1 + A0(density))
 
-# (19), (20), (23)
+# (23-24)
 while abs((calc_reduced_pres(delta0) - reduced_pres) / reduced_pres) > 10**(-6):
     A0_delta0 = A0(delta0)
     A1_delta0 = A1(delta0)
@@ -483,14 +486,14 @@ while abs((calc_reduced_pres(delta0) - reduced_pres) / reduced_pres) > 10**(-6):
 # (25)
 A2 = lambda density: sum(
     a[n] * density**b[n] * reduced_temp**(-u[n]) * (1 - u[n]) * 
-    (b[n] * D[n] + (b[n] - c[n] * k[n] * density**k[n]) * U[n] * math.exp(-c[n] * density**k[n]))
+    (b[n] * D[n] + (b[n] - c[n] * k[n] * density**k[n]) * U[n] * exp(-c[n] * density**k[n]))
     for n in range(58)
 )
 
 # (26)
 A3 = lambda density: sum(
     a[n] * density**b[n] * reduced_temp**(-u[n]) * u[n] * (1 - u[n]) * 
-    (D[n] + U[n] * math.exp(-c[n] * density**k[n]))
+    (D[n] + U[n] * exp(-c[n] * density**k[n]))
     for n in range(58)
 )
 A0, A1, A2, A3 = A0(delta0), A1(delta0), A2(delta0), A3(delta0)
@@ -501,18 +504,18 @@ z = 1 + A0
 # (28)-(29)
 theta = reduced_temp**(-1)
 cp0ri = lambda i: (B0i[i] + 
-                    C0i[i] * ((D0i[i] * theta) / math.sinh(D0i[i] * theta)) ** 2 + 
-                    E0i[i] * ((F0i[i] * theta) / math.cosh(F0i[i] * theta)) ** 2 + 
-                    G0i[i] * ((H0i[i] * theta) / math.sinh(H0i[i] * theta)) ** 2 + 
-                    I0i[i] * ((J0i[i] * theta) / math.cosh(J0i[i] * theta)) ** 2)
+                    C0i[i] * ((D0i[i] * theta) / sinh(D0i[i] * theta)) ** 2 + 
+                    E0i[i] * ((F0i[i] * theta) / cosh(F0i[i] * theta)) ** 2 + 
+                    G0i[i] * ((H0i[i] * theta) / sinh(H0i[i] * theta)) ** 2 + 
+                    I0i[i] * ((J0i[i] * theta) / cosh(J0i[i] * theta)) ** 2)
 cp0r = sum(mix[i] * cp0ri(i) for i in range(9)) + \
        sum(mix[i] * cp0ri(i) for i in range(10, 13)) + \
        mix[14] * cp0ri(14)
-cp0ri_special = lambda i: B0i[i] + E0i[i] * ((F0i[i] * theta) / math.cosh(F0i[i] * theta)) ** 2 + \
-                          I0i[i] * ((J0i[i] * theta) / math.cosh(J0i[i] * theta)) ** 2
+cp0ri_special = lambda i: B0i[i] + E0i[i] * ((F0i[i] * theta) / cosh(F0i[i] * theta)) ** 2 + \
+                          I0i[i] * ((J0i[i] * theta) / cosh(J0i[i] * theta)) ** 2
 cp0r += mix[9] * cp0ri_special(9)
 cp0r += mix[13] * cp0ri_special(13)
 
 # (30)
 adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
-print(f'Показатель адиабаты равен k = {adiab_ind}')
+print(f'Показатель адиабаты:\nk = {adiab_ind}')
