@@ -39,7 +39,7 @@ ri = [
     c_dioxide, 
     helium, 
     hydgrogen
-]
+    ]
 Ki = [
     0.4619255, 
     0.5279209,
@@ -411,33 +411,32 @@ kelvin = celsius + 273.15
 # (3)
 exponent = 5 / 2
 Sum_xi_ki = sum(xi * (ki ** exponent) for xi, ki in zip(mix, Ki)) ** 2
-Sum_xi_xj = sum(mix[i] * mix[j] * (Kij[i][j] ** 5 - 1) * (Ki[i] * Ki[j]) ** exponent 
+DSum_xi_xj = sum(mix[i] * mix[j] * (Kij[i][j] ** 5 - 1) * (Ki[i] * Ki[j]) ** exponent 
                 for i in range(len(mix) - 1) for j in range(i + 1, len(mix)))
-Kx = (Sum_xi_ki + 2 * Sum_xi_xj) ** (1 / 5)
+Kx = (Sum_xi_ki + 2 * DSum_xi_xj) ** (1 / 5)
 
 # (4)
-p0m = R * 10**(-3) / (Kx**3)
+reduced_temp = kelvin/1
+
+# (6)
+p0m = 10**(-3)*(Kx**(-3)*R*1)
 
 # (5)
 reduced_pres = pressure/p0m
 
-# (6)
-reduced_temp = kelvin/1
-
 # (7)-(17)
-Q = sum(x * q for x, q in zip(mix, Qi))
-F = sum((x**2) * f for x, f in zip(mix, Fi))
 G = sum(x * g for x, g in zip(mix, Gi)) + sum(
     mix[i] * mix[j] * (Gij[i][j] - 1) * (Gi[i] + Gi[j]) 
     for i in range(len(mix) - 1) for j in range(i + 1, len(mix))
 )
+
+Q = sum(x * q for x, q in zip(mix, Qi))
+F = sum((x**2) * f for x, f in zip(mix, Fi))
 V = (
-    sum(x * (e ** (5 / 2)) for x, e in zip(mix, Ei)) ** 2 +
-    2 * sum(mix[i] * mix[j] * (Vij[i][j] ** 5 - 1) * ((Ei[i] * Ei[j]) ** (5 / 2))
+    sum(x * (e ** exponent) for x, e in zip(mix, Ei)) ** 2 +
+    2 * sum(mix[i] * mix[j] * (Vij[i][j] ** 5 - 1) * ((Ei[i] * Ei[j]) ** exponent)
             for i in range(len(mix) - 1) for j in range(i + 1, len(mix)))
 ) ** (1 / 5)
-
-
 U = [0] * 12
 Cn = lambda n: ((G + 1 - g[n]) ** g[n]) * \
     ((Q**2 + 1 - q[n]) ** q[n]) * ((F + 1 - f[n]) ** f[n]) * (V ** u[n])
@@ -484,8 +483,7 @@ while abs((calc_reduced_pres(delta0) - reduced_pres) / reduced_pres) > 10**(-6):
     A1_delta0 = A1(delta0)
     delta0 += ((reduced_pres / reduced_temp) - (1 + A0_delta0) * delta0) / (1 + A1_delta0)
 
-
-# (24)
+# (25)
 A2 = lambda density: sum(
     a[n] * density**b[n] * reduced_temp**(-u[n]) * (1 - u[n]) * 
     (b[n] * D[n] + (b[n] - c[n] * k[n] * density**k[n]) * U[n] * math.exp(-c[n] * density**k[n]))
@@ -498,12 +496,12 @@ A3 = lambda density: sum(
     (D[n] + U[n] * math.exp(-c[n] * density**k[n]))
     for n in range(58)
 )
-
 A0, A1, A2, A3 = A0(delta0), A1(delta0), A2(delta0), A3(delta0)
+
 # (27)
 z = 1 + A0
 
-# (28)-29
+# (28)-(29)
 theta = reduced_temp**(-1)
 cp0ri = lambda i: (B0i[i] + 
                     C0i[i] * ((D0i[i] * theta) / math.sinh(D0i[i] * theta)) ** 2 + 
@@ -520,4 +518,4 @@ cp0r += mix[13] * cp0ri_special(13)
 
 # (30)
 adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
-print('Показатель адиабаты равен k = ', adiab_ind)
+print(f'Показатель адиабаты равен k = {adiab_ind}')
