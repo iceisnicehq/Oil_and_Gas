@@ -429,7 +429,6 @@ G = sum(x * g for x, g in zip(mix, Gi)) + sum(
     mix[i] * mix[j] * (Gij[i][j] - 1) * (Gi[i] + Gi[j]) 
     for i in range(len(mix) - 1) for j in range(i + 1, len(mix))
 )
-
 Q = sum(x * q for x, q in zip(mix, Qi))
 F = sum((x**2) * f for x, f in zip(mix, Fi))
 V = (
@@ -441,7 +440,6 @@ U = [0] * 12
 Cn = lambda n: ((G + 1 - g[n]) ** g[n]) * \
     ((Q**2 + 1 - q[n]) ** q[n]) * ((F + 1 - f[n]) ** f[n]) * (V ** u[n])
 U.extend(Cn(n) for n in range(12, 58))
-
 Bn = lambda n: sum(mix[i] * mix[j] * Bnij(n, i, j) * Eijn(i, j) ** u[n] * ((Ki[i] * Ki[j]) ** (3 / 2)) 
                    for i in range(len(mix)) for j in range(len(mix)))
 Bnij = lambda n, i, j: ((Gijn(i, j) + 1 - g[n]) ** g[n]) * ((Qi[i] * Qi[j] + 1 - q[n]) ** q[n]) * \
@@ -449,7 +447,6 @@ Bnij = lambda n, i, j: ((Gijn(i, j) + 1 - g[n]) ** g[n]) * ((Qi[i] * Qi[j] + 1 -
                        ((Wi[i] * Wi[j] + 1 - w[n]) ** w[n])  
 Eijn = lambda i, j: Eij[i][j] * math.sqrt(Ei[i] * Ei[j])         
 Gijn = lambda i, j: (Gij[i][j] * (Gi[i] + Gi[j])) / 2
-
 D = [Bn(n) * (Kx ** -3) for n in range(12)] + \
     [Bn(n) * (Kx ** -3) - Cn(n) for n in range(12, 18)] + \
     [0] * 40
@@ -477,7 +474,7 @@ A1 = lambda density: sum(
 # (24)
 calc_reduced_pres = lambda density: density * reduced_temp * (1 + A0(density))
 
-# (23-24)
+# (19), (20), (23)
 while abs((calc_reduced_pres(delta0) - reduced_pres) / reduced_pres) > 10**(-6):
     A0_delta0 = A0(delta0)
     A1_delta0 = A1(delta0)
