@@ -142,18 +142,14 @@ def main(ri: list[float]) -> float:
 
     # (28)-(29)
     theta = reduced_temp**(-1)
-    cp0ri = lambda i:  (B0i[i] + 
-                        C0i[i] * ((D0i[i] * theta) / sinh(D0i[i] * theta)) ** 2 + 
-                        E0i[i] * ((F0i[i] * theta) / cosh(F0i[i] * theta)) ** 2 + 
-                        G0i[i] * ((H0i[i] * theta) / sinh(H0i[i] * theta)) ** 2 + 
-                        I0i[i] * ((J0i[i] * theta) / cosh(J0i[i] * theta)) ** 2)
-    cp0r = sum(mix[i] * cp0ri(i) for i in range(9)) + \
-        sum(mix[i] * cp0ri(i) for i in range(10, 13)) + \
-        mix[14] * cp0ri(14)
-    cp0ri_special = lambda i: B0i[i] + E0i[i] * ((F0i[i] * theta) / cosh(F0i[i] * theta)) ** 2 + \
-                            I0i[i] * ((J0i[i] * theta) / cosh(J0i[i] * theta)) ** 2
-    cp0r += mix[9] * cp0ri_special(9)
-    cp0r += mix[13] * cp0ri_special(13)
+    cp0ri = lambda i: (
+         B0i[i] + 
+        (C0i[i] * ((D0i[i] * theta) / sinh(D0i[i] * theta)) ** 2 if sinh(D0i[i] * theta) != 0 else 0) + 
+        (E0i[i] * ((F0i[i] * theta) / cosh(F0i[i] * theta)) ** 2 if cosh(F0i[i] * theta) != 0 else 0) + 
+        (G0i[i] * ((H0i[i] * theta) / sinh(H0i[i] * theta)) ** 2 if sinh(H0i[i] * theta) != 0 else 0) + 
+        (I0i[i] * ((J0i[i] * theta) / cosh(J0i[i] * theta)) ** 2 if cosh(J0i[i] * theta) != 0 else 0)
+    )
+    cp0r = sum(mix[i] * cp0ri(i) for i in range(len(ri)))
 
     # (30)
     adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
