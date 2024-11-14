@@ -21,29 +21,31 @@ from consts import R, Lt, \
     a, b, c, u, k, g, q, f, s, w, zci
 
 # ИСХОДНЫЕ ДАННЫЕ (52)
-methane     = 88.7647  / 100  #
-ethane      =  3.9515  / 100  #
-propane     =  2.3270  / 100  #
-u_butane    =  0.4948  / 100  #
-h_butane    =  0.2650  / 100  #
-neo_pentane =  0.0
-u_peptane   =  0.0
-h_pentane   =  0.0595  / 100  #
-neo_hexane  =  0.0       
-h_hexane    =  0.0753  / 100  #
-h_heptane   =  0.0     
-nitrogen    =  3.2885  / 100  #
-c_dioxide   =  0.7254  / 100  #
-helium      =  0.0483  / 100  #
-hydgrogen   =  0.0
+natural_gas = {
+    "methane":    88.7647 / 100, 
+    "ethane":      3.9515 / 100,
+    "propane":     2.3270 / 100,
+    "u_butane":    0.4948 / 100,
+    "h_butane":    0.2650 / 100,
+    "neo_pentane": 0.0,
+    "u_peptane":   0.0,
+    "h_pentane":   0.0595 / 100,
+    "neo_hexane":  0.0,
+    "h_hexane":    0.0753 / 100,
+    "h_heptane":   0.0,
+    "nitrogen":    3.2885 / 100,
+    "c_dioxide":   0.7254 / 100,
+    "helium":      0.0483 / 100,
+    "hydgrogen":   0.0,
+}
 
 pressure    = 20
 celsius     = -1
 
-def main(ri):
+def main(ri: list[float]) -> float:
     # (1) 
-    mix = [(ri_val / zci_val) / sum(ri_val / zci_val for ri_val, zci_val in zip(ri, zci)) 
-            for ri_val, zci_val in zip(ri, zci)]
+    denominator = sum(ri_val / zci_val for ri_val, zci_val in zip(ri, zci))
+    mix = [(ri_val / zci_val) / denominator for ri_val, zci_val in zip(ri, zci)]
 
     # (2)
     kelvin = celsius + 273.15
@@ -76,10 +78,9 @@ def main(ri):
         2 * sum(mix[i] * mix[j] * (Vij[i][j] ** 5 - 1) * ((Ei[i] * Ei[j]) ** exponent)
                 for i in range(len(mix) - 1) for j in range(i + 1, len(mix)))
     ) ** (1 / 5)
-    U = [0] * 12
     Cn = lambda n: ((G + 1 - g[n]) ** g[n]) * \
         ((Q**2 + 1 - q[n]) ** q[n]) * ((F + 1 - f[n]) ** f[n]) * (V ** u[n])
-    U.extend(Cn(n) for n in range(12, 58))
+    U = [0] * 12 + [Cn(n) for n in range(12, 58)]
     Bn = lambda n: sum(mix[i] * mix[j] * Bnij(n, i, j) * Eijn(i, j) ** u[n] * ((Ki[i] * Ki[j]) ** (3 / 2)) 
                     for i in range(len(mix)) for j in range(len(mix)))
     Bnij = lambda n, i, j: ((Gijn(i, j) + 1 - g[n]) ** g[n]) * ((Qi[i] * Qi[j] + 1 - q[n]) ** q[n]) * \
@@ -156,27 +157,12 @@ def main(ri):
 
     # (30)
     adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
-    print(f'Показатель адиабаты:\nk = {adiab_ind}')
     return adiab_ind
 
 if __name__ == "__main__":
-    ri = [
-    methane, 
-    ethane, 
-    propane, 
-    u_butane, 
-    h_butane, 
-    neo_pentane, 
-    u_peptane, 
-    h_pentane, 
-    neo_hexane, 
-    h_hexane, 
-    h_heptane, 
-    nitrogen, 
-    c_dioxide, 
-    helium, 
-    hydgrogen
-    ]
-
-    main(ri)
+    ri = list(natural_gas.values())
+    if sum(ri) != 1.0:
+        print("not 100%")
+    else:
+        print(f'Показатель адиабаты:\nk = {main(ri)}')
 
