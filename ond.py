@@ -22,21 +22,21 @@ from consts import R, Lt, \
 
 # ИСХОДНЫЕ ДАННЫЕ (52)
 natural_gas = {
-    "methane":    88.7647 / 100, 
-    "ethane":      3.9515 / 100,
-    "propane":     2.3270 / 100,
-    "u_butane":    0.4948 / 100,
-    "h_butane":    0.2650 / 100,
+    "methane":     0.887647,
+    "ethane":      0.039515,
+    "propane":     0.023270,
+    "u_butane":    0.004948,
+    "h_butane":    0.002650,
     "neo_pentane": 0.0,
     "u_pentane":   0.0,
-    "h_pentane":   0.0595 / 100,
+    "h_pentane":   0.000595,
     "neo_hexane":  0.0,
-    "h_hexane":    0.0753 / 100,
+    "h_hexane":    0.000753,
     "h_heptane":   0.0,
-    "nitrogen":    3.2885 / 100,
-    "c_dioxide":   0.7254 / 100,
-    "helium":      0.0483 / 100,
-    "hydgrogen":   0.0,
+    "nitrogen":    0.032885,
+    "c_dioxide":   0.007254,
+    "helium":      0.000483,
+    "hydgrogen":   0.0
 }
 
 pressure    = 20
@@ -45,16 +45,26 @@ celsius     = -1
 def main(ri: list[float]) -> float:
     # (1) 
     denominator = sum(ri_val / zci_val for ri_val, zci_val in zip(ri, zci))
-    mix = [(ri_val / zci_val) / denominator for ri_val, zci_val in zip(ri, zci)]
+    mix = [
+        (ri_val / zci_val) / denominator
+        for ri_val, zci_val in zip(ri, zci)
+    ]
 
     # (2)
     kelvin = celsius + 273.15
 
     # (3)
     exponent = 5 / 2
-    Sum_xi_ki = sum(xi * (ki ** exponent) for xi, ki in zip(mix, Ki)) ** 2
-    DSum_xi_xj = sum(mix[i] * mix[j] * (Kij[i][j] ** 5 - 1) * (Ki[i] * Ki[j]) ** exponent 
-                    for i in range(len(mix) - 1) for j in range(i + 1, len(mix)))
+
+    Sum_xi_ki = sum(
+        xi * (ki ** exponent)
+        for xi, ki in zip(mix, Ki)
+    ) ** 2
+    DSum_xi_xj = sum(
+        mix[i] * mix[j] * (Kij[i][j] ** 5 - 1) * (Ki[i] * Ki[j]) ** exponent
+        for i in range(len(mix) - 1)
+        for j in range(i + 1, len(mix))
+    )
     Kx = (Sum_xi_ki + 2 * DSum_xi_xj) ** (1 / 5)
 
     # (4)
@@ -69,28 +79,46 @@ def main(ri: list[float]) -> float:
     # (7)-(17)
     G = sum(x * g for x, g in zip(mix, Gi)) + sum(
         mix[i] * mix[j] * (Gij[i][j] - 1) * (Gi[i] + Gi[j]) 
-        for i in range(len(mix) - 1) for j in range(i + 1, len(mix))
+        for i in range(len(mix) - 1)
+        for j in range(i + 1, len(mix))
     )
     Q = sum(x * q for x, q in zip(mix, Qi))
     F = sum((x**2) * f for x, f in zip(mix, Fi))
     V = (
         sum(x * (e ** exponent) for x, e in zip(mix, Ei)) ** 2 +
-        2 * sum(mix[i] * mix[j] * (Vij[i][j] ** 5 - 1) * ((Ei[i] * Ei[j]) ** exponent)
-                for i in range(len(mix) - 1) for j in range(i + 1, len(mix)))
+        2 * sum(
+            mix[i] * mix[j] * (Vij[i][j] ** 5 - 1) * ((Ei[i] * Ei[j]) ** exponent)
+            for i in range(len(mix) - 1)
+            for j in range(i + 1, len(mix))
+        )
     ) ** (1 / 5)
-    Cn = lambda n: ((G + 1 - g[n]) ** g[n]) * \
-        ((Q**2 + 1 - q[n]) ** q[n]) * ((F + 1 - f[n]) ** f[n]) * (V ** u[n])
+    Cn = lambda n: (
+        ((G + 1 - g[n]) ** g[n]) *
+        ((Q ** 2 + 1 - q[n]) ** q[n]) *
+        ((F + 1 - f[n]) ** f[n]) *
+        (V ** u[n])
+    )
     U = [0] * 12 + [Cn(n) for n in range(12, 58)]
-    Bn = lambda n: sum(mix[i] * mix[j] * Bnij(n, i, j) * Eijn(i, j) ** u[n] * ((Ki[i] * Ki[j]) ** (3 / 2)) 
-                    for i in range(len(mix)) for j in range(len(mix)))
-    Bnij = lambda n, i, j: ((Gijn(i, j) + 1 - g[n]) ** g[n]) * ((Qi[i] * Qi[j] + 1 - q[n]) ** q[n]) * \
-                        ((sqrt(Fi[i] * Fi[j]) + 1 - f[n]) ** f[n]) * ((Si[i] * Si[j] + 1 - s[n]) ** s[n]) * \
-                        ((Wi[i] * Wi[j] + 1 - w[n]) ** w[n])  
+    Bn = lambda n: sum(
+        mix[i] * mix[j] * Bnij(n, i, j) * Eijn(i, j) ** u[n] *
+        ((Ki[i] * Ki[j]) ** (3 / 2))
+        for i in range(len(mix))
+        for j in range(len(mix))
+    )
+    Bnij = lambda n, i, j: (
+        ((Gijn(i, j) + 1 - g[n]) ** g[n]) *
+        ((Qi[i] * Qi[j] + 1 - q[n]) ** q[n]) *
+        ((sqrt(Fi[i] * Fi[j]) + 1 - f[n]) ** f[n]) *
+        ((Si[i] * Si[j] + 1 - s[n]) ** s[n]) *
+        ((Wi[i] * Wi[j] + 1 - w[n]) ** w[n])
+    )
     Eijn = lambda i, j: Eij[i][j] * sqrt(Ei[i] * Ei[j])         
     Gijn = lambda i, j: (Gij[i][j] * (Gi[i] + Gi[j])) / 2
-    D = [Bn(n) * (Kx ** -3) for n in range(12)] + \
-        [Bn(n) * (Kx ** -3) - Cn(n) for n in range(12, 18)] + \
+    D = (
+        [Bn(n) * (Kx ** -3) for n in range(12)] +
+        [Bn(n) * (Kx ** -3) - Cn(n) for n in range(12, 18)] +
         [0] * 40
+    )
 
     # (18)
     delta0 = (10 ** 3 * pressure * Kx ** 3) / (R * kelvin) 
@@ -98,34 +126,35 @@ def main(ri: list[float]) -> float:
     A = [
         # (21) = A0
         lambda density: sum(
-            a[n] * density**b[n] * reduced_temp**(-u[n]) * (b[n] * D[n] + (b[n] - c[n] * k[n] 
-            * density**k[n]) * U[n] * exp(-c[n] * density**k[n]))
+            a[n] * density ** b[n] * reduced_temp ** (-u[n]) * 
+            (b[n] * D[n] + (b[n] - c[n] * k[n] * density ** k[n]) * U[n] * exp(-c[n] * density ** k[n]))
             for n in range(58)
         ),
         # (22) = A1
         lambda density: sum(
-            a[n] * density**b[n] * reduced_temp**(-u[n]) * (
+            a[n] * density ** b[n] * reduced_temp ** (-u[n]) * (
                 (b[n] + 1) * b[n] * D[n] + 
-                ((b[n] - c[n] * k[n] * density**k[n]) * (b[n] - c[n] 
-                * k[n] * density**k[n] + 1) - c[n] * k[n]**2 * density**k[n]) 
-                * U[n] * exp(-c[n] * density**k[n])
+                ((b[n] - c[n] * k[n] * density ** k[n]) * 
+                (b[n] - c[n] * k[n] * density ** k[n] + 1) - 
+                c[n] * k[n] ** 2 * density ** k[n]) 
+                * U[n] * exp(-c[n] * density ** k[n])
             )
             for n in range(58)
         ),
         # (25) = A2
         lambda density: sum(
-            a[n] * density**b[n] * reduced_temp**(-u[n]) * (1 - u[n]) * 
-            (b[n] * D[n] + (b[n] - c[n] * k[n] * density**k[n]) * U[n] * exp(-c[n] * density**k[n]))
+            a[n] * density ** b[n] * reduced_temp ** (-u[n]) * (1 - u[n]) * 
+            (b[n] * D[n] + (b[n] - c[n] * k[n] * density ** k[n]) * U[n] * exp(-c[n] * density ** k[n]))
             for n in range(58)
         ),
         # (26) = A3
         lambda density: sum(
-            a[n] * density**b[n] * reduced_temp**(-u[n]) * u[n] * (1 - u[n]) * 
-            (D[n] + U[n] * exp(-c[n] * density**k[n]))
+            a[n] * density ** b[n] * reduced_temp ** (-u[n]) * u[n] * (1 - u[n]) * 
+            (D[n] + U[n] * exp(-c[n] * density ** k[n]))
             for n in range(58)
         )
     ]
-    
+        
     # (24)
     calc_reduced_pres = lambda density: density * reduced_temp * (1 + A[0](density))
 
@@ -153,11 +182,9 @@ def main(ri: list[float]) -> float:
 
     # (30)
     adiab_ind = (1 + A1 + ((1 + A2) ** 2) / (cp0r - 1 + A3)) / z
+    
     return adiab_ind
 
 if __name__ == "__main__":
     ri = list(natural_gas.values())
-    if round(sum(ri)) != 1.0:
-        print(f"not 100% ({sum(ri)})")
-    else:
-        print(f'Показатель адиабаты:\nk = {main(ri)}')
+    print(f'Показатель адиабаты:\nk = {main(ri)}')
