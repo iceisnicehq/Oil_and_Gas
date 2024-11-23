@@ -28,7 +28,7 @@ natural_gas = {
     "u_butane":    0.4948 / 100,
     "h_butane":    0.2650 / 100,
     "neo_pentane": 0.0,
-    "u_peptane":   0.0,
+    "u_pentane":   0.0,
     "h_pentane":   0.0595 / 100,
     "neo_hexane":  0.0,
     "h_hexane":    0.0753 / 100,
@@ -157,8 +157,7 @@ def main(ri: list[float]) -> float:
 
 if __name__ == "__main__":
     ri = list(natural_gas.values())
-    if sum(ri) != 1.0:
-        print("not 100%")
+    if round(sum(ri)) != 1.0:
+        print(f"not 100% ({sum(ri)})")
     else:
         print(f'Показатель адиабаты:\nk = {main(ri)}')
-
