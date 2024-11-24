@@ -39,8 +39,8 @@ natural_gas = {
     "hydgrogen":   0.0
 }
 
-pressure    = 20
-celsius     = -1
+pressure         = 20
+celsius          = -1
 
 def main(ri: list[float]) -> float:
     # (1) 
